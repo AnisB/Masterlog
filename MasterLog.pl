@@ -29,6 +29,22 @@ readFile(File,Y,Z):-
         process_stream(Char1, In,Y,Z),
         close(In).
 
+% Fonctions de substitution
+subs_pile(X,Y,[],Z,Z).
+subs_pile([],Y,[X|F],S,Z):-subs_pile([],Y,F,[X|S],Z).
+subs_pile(X,Y,[X|F],S,Z):-subs_pile([],Y,F,[Y|S],Z).
+subs_pile(X,Y,[Q|F],S,Z):-X\=Q,subs_pile(X,Y,F,[Q|S],Z).
+subs(X,Y,Z,S):-subs_pile(X,Y,Z,[],Q),inv(Q,S).
+
+search(A,Y,p,Ys):-member(A,Y), subs(A,p,Y,Ys).
+search(A,Y,f,Y):-not(member(A,Y)).
+
+replace2([],_,Z,Z).
+replace2([v|X],Y,Z,R):-replace2(X,Y,[v|Z],R).
+replace2([A|X],Y,Z,R):-A\=v,search(A,Y,f,Ys),replace2(X,Ys,[f|Z],R).
+replace2([A|X],Y,Z,R):-A\=v,search(A,Y,p,Ys),replace2(X,Ys,[p|Z],R).
+replace(X,Y,R):-replace2(X,Y,[],S),inv(S,R).
+
 
 
 % Lecture des caractères
@@ -48,23 +64,17 @@ process_stream(Char, In,Y,Z) :-
 % Correction exacte
 testExact2([],[],Z,Z).     
 testExact2([X|K],[X|O],Z,R):-testExact2(K,O,[v|Z],R).     
-testExact2([X|K],[Y|O],Z,R):- X\=Y,testExact2(K,O,[f|Z],R).  
+testExact2([X|K],[Y|O],Z,R):- X\=Y,testExact2(K,O,[X|Z],R).  
 testExact(X,Y,R):-testExact2(X,Y,[],F),inv(F,R).   
 
 
-% Correction reste
-
-remplacer([],[],[],X,Y,X,Y).
-remplacer([D|X],[S|Y],[f|Z],Xp,Yp,Xs,Ys):-remplacer(X,Y,Z,[D|Xp],[S|Yp],Xs,Ys).
-remplacer([D|X],[S|Y],[v|Z],Xp,Yp,Xs,Ys):-remplacer(X,Y,Z,[v|Xp],[v|Yp],Xs,Ys).
-testReste(X,Y,Z):-remplacer(X,Y,Z,[],[],Xs,Ys),inv(Xs,Xu),inv(Ys,Yu).
-
-test1(S):-testExact([a,b,d],[a,b,c],R),testReste([a,b,d],[a,b,c],R).
+test1(X,Y,S):-testExact(X,Y,R),replace(R,Y,S).
 
 %test(X,Y,Z):-
 
 
 %startGame©:-
+
 
 
 
