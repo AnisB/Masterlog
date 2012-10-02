@@ -1,0 +1,4 @@
+Masterlog
+=========
+
+Mastermind in prolog
