@@ -29,11 +29,25 @@ readFile(File,Y,Z):-
         process_stream(Char1, In,Y,Z),
         close(In).
 
+
+% Lecture des caractères
+process_stream(end_of_file, _,Y,Y) :- !.
+      
+process_stream(' ', In,Y,Z) :-
+        get_char(In, Char2),
+        process_stream(Char2, In,Y,Z).      
+process_stream(Char, In,Y,Z) :-
+		Char \=' ',
+        get_char(In, Char2),
+        process_stream(Char2, In,Y,[U|Z]).
+        
+        
+        
 % Fonctions de substitution
 subs_pile(X,Y,[],Z,Z).
 subs_pile([],Y,[X|F],S,Z):-subs_pile([],Y,F,[X|S],Z).
 subs_pile(X,Y,[X|F],S,Z):-subs_pile([],Y,F,[Y|S],Z).
-subs_pile(X,Y,[Q|F],S,Z):-X\=Q,subs_pile(X,Y,F,[Q|S],Z).
+subs_pile(X,Y,[Q|F],S,Z):-X\=Q,X\=[],subs_pile(X,Y,F,[Q|S],Z).
 subs(X,Y,Z,S):-subs_pile(X,Y,Z,[],Q),inv(Q,S).
 
 search(A,Y,p,Ys):-member(A,Y), subs(A,p,Y,Ys).
@@ -47,16 +61,7 @@ replace(X,Y,R):-replace2(X,Y,[],S),inv(S,R).
 
 
 
-% Lecture des caractères
-process_stream(end_of_file, _,Y,Y) :- !.
-      
-process_stream(' ', In,Y,Z) :-
-        get_char(In, Char2),
-        process_stream(Char2, In,Y,Z).      
-process_stream(Char, In,Y,Z) :-
-		Char \=' ',
-        get_char(In, Char2),
-        process_stream(Char2, In,Y,[Char|Z]).
+
         
         
 % Correction d'une tentative, X: Combinaison proposée, Y: Combinaison exacte, Z: correction   
@@ -67,15 +72,23 @@ testExact2([X|K],[X|O],Z,R):-testExact2(K,O,[v|Z],R).
 testExact2([X|K],[Y|O],Z,R):- X\=Y,testExact2(K,O,[X|Z],R).  
 testExact(X,Y,R):-testExact2(X,Y,[],F),inv(F,R).   
 
+verif([],ok):-write('You just won the match\n').
+verif([v|J],F):-verif(J,F).
 
-test1(X,Y,S):-testExact(X,Y,R),replace(R,Y,S).
+verif([X|J],notok):- X\=v,write('Not ok Continue').
 
-%test(X,Y,Z):-
+testComb(X,Y,S):-testExact(X,Y,R),replace(R,Y,S).
 
-
-%startGame©:-
-
-
+tour(X,-1):-write('You just lost the game').
+tour(X,Y):- Y\=0,read(H),testComb(H,X,J),write(J),verif(J,D),write(D), D==ok,write('Hurray!!!').
 
 
-launch(X):-write(''),getCombination('logs',InitCombination,[]),inv(InitCombination,Patate),startGame(Patate).
+tour(X,Y):-Y \=0,read(H),testComb(H,X,J),write(J),verif(J,D),write(D),D==notok,Z is Y -1,tour(X,Z).
+
+
+startGame(X,Y):-Z is Y -1,tour(X,Z).
+
+launch(X):-write(''),getCombination('logs',InitCombination,[]),inv(InitCombination,Patate),write(Patate),startGame(Patate,9).
+
+play(Y):-read(X),write(X),startGame(X,Y).
+
