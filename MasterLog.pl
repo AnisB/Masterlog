@@ -39,12 +39,12 @@ process_stream(' ', In,Y,Z) :-
 process_stream(Char, In,Y,Z) :-
 		Char \=' ',
         get_char(In, Char2),
-        process_stream(Char2, In,Y,[U|Z]).
+        process_stream(Char2, In,Y,[_|Z]).
         
         
         
 % Fonctions de substitution
-subs_pile(X,Y,[],Z,Z).
+subs_pile(_,_,[],Z,Z).
 subs_pile([],Y,[X|F],S,Z):-subs_pile([],Y,F,[X|S],Z).
 subs_pile(X,Y,[X|F],S,Z):-subs_pile([],Y,F,[Y|S],Z).
 subs_pile(X,Y,[Q|F],S,Z):-X\=Q,X\=[],subs_pile(X,Y,F,[Q|S],Z).
@@ -72,23 +72,25 @@ testExact2([X|K],[X|O],Z,R):-testExact2(K,O,[v|Z],R).
 testExact2([X|K],[Y|O],Z,R):- X\=Y,testExact2(K,O,[X|Z],R).  
 testExact(X,Y,R):-testExact2(X,Y,[],F),inv(F,R).   
 
-verif([],ok):-write('You just won the match\n').
-verif([v|J],F):-verif(J,F).
+% Le deuxième paramètre prend la valeur 1 si la combinaison est gagnante (que des v), 0 sinon
+testVictory([], 1).
+testVictory([v|R], V):-testVictory(R, V).
+testVictory([X|_], 0):-X\=v.
 
-verif([X|J],notok):- X\=v,write('Not ok Continue').
-
+% X : combinaison proposée, Y : combinaison juste, S : correction
 testComb(X,Y,S):-testExact(X,Y,R),replace(R,Y,S).
 
-tour(X,-1):-write('You just lost the game').
-tour(X,Y):- Y\=0,read(H),testComb(H,X,J),write(J),verif(J,D),write(D), D==ok,write('Hurray!!!').
+
+tour(_,_,1):-write('Victory !\n').
+tour(_,0,0):-write('You just lost the game\n').
+tour(X,Y,0):- Y\=0,write('Try to guess the combination\n'),read(H),testComb(H,X,J),write(J),testVictory(J,V),Z is Y -1,tour(X,Z,V).
 
 
-tour(X,Y):-Y \=0,read(H),testComb(H,X,J),write(J),verif(J,D),write(D),D==notok,Z is Y -1,tour(X,Z).
 
+startGame(X,Y):-tour(X,Y,0).
 
-startGame(X,Y):-Z is Y -1,tour(X,Z).
+%launch(X):-write(''),getCombination('logs',InitCombination,[]),inv(InitCombination,Patate),write(Patate),startGame(Patate,9).
 
-launch(X):-write(''),getCombination('logs',InitCombination,[]),inv(InitCombination,Patate),write(Patate),startGame(Patate,9).
-
+% Y : nombre de tours
 play(Y):-read(X),write(X),startGame(X,Y).
 
