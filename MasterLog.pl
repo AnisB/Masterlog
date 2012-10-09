@@ -94,3 +94,25 @@ startGame(X,Y):-tour(X,Y,0).
 % Y : nombre de tours
 play(Y):-read(X),write(X),startGame(X,Y).
 
+extract(X, [X|L], L).
+extract(X, [T|R], [T|L] ):-extract(X, R, L).
+
+newList(Li,C,[],Lp,[],[],Li,K,K,C).
+newList(Li,C,[K|Ls],[D|Lp],[f|X],[I|Y],NLi,NLp,NLpf,NC):-extract(I,Li,Li2),newList(Li2,C,Ls,Lp,X,Y,NLi,[D|NLp],NLpf,NC).
+
+newList(Li,C,[I|Ls],[D|Lp],[v|X],[I|Y],NLi,NLp,NLpf,NC):-extract(I,Li,Li2),newList(Li2,[I|C],Ls,Lp,X,Y,NLi,[D|NLp],NLpf,NC).
+
+newList(Li,C,[K|Ls],[D|Lp],[p|X],[I|Y],NLi,NLp,NLpf,NC):-extract(I,Li,Li2),newList(Li2,[I|C],Ls,Lp,X,Y,NLi,[[I|D]|NLp],NLpf,NC).
+
+propose(4,_,_,_,_,S,Sk):-inv(S,Sk).
+propose(Size,[],Lp,C,S,Sp):- propose(Size,C,Lp,[],S,Sp).
+propose(Size,[D|Li],[O|Lp],C,S,Sp):-D \= [], Size1 is Size+1,not(member(D,O)),propose(Size1,Li,Lp,C,[D|S],Sp).
+propose(Size,[D|Li],Lp,C,S,Sp):-D \= [], propose(Size,Li,Lp,[D|C],S,Sp).
+
+
+
+
+solve(S,Li,Sf,Ls,Lp,C):-propose(0,Li,Lp,C,S,Sp), testComb(S,Sp,R),newtList(Li,C,Ls,Lp,X,Y,NLi,Nlp,Nlpf,NC),solve(S,NLi,Sf,Ls,Nlpf,NC).
+machine(S,Li,Sf):-solve(S,Li,Sf,[X,Y,Z,D],[[],[],[],[]],[]).
+
+%newList([1,2,3,4,5,6,7,8],C,[X,Y,Z,D],[[],[],[],[]],[p,v,f,f],[1,2,7,6],J,[],Q,P).
