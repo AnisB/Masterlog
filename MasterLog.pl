@@ -110,7 +110,7 @@ newList(Li,C,[K|Ls],[D|Lp],[p|X],[I|Y],NLi,NLp,NLpf,NC):-newList(Li2,[I|C],Ls,Lp
 
 propose(4,NLI,_,NC,S,Sk,NC,NLI):-inv(S,Sk).
 propose(Size,[],Lp,C,S,Sp,NC,NLI):- propose(Size,C,Lp,[],S,Sp,NC,NLI).
-propose(Size,[D|Li],[O|Lp],C,S,Sp,NC,NLI):-D \= [], Size1 is Size+1,not(member(D,O)),propose(Size1,Li,Lp,C,[D|S],Sp,NC,NLI).
+propose(Size,[D|Li],[O|Lp],C,S,Sp,NC,NLI):-D \= [], Size1 is Size+1,not(member(D,O)),propose(Size1,Li,Lp,[D|C],[D|S],Sp,NC,NLI).
 propose(Size,[D|Li],Lp,C,S,Sp,NC,NLI):-D \= [], propose(Size,Li,Lp,[D|C],S,Sp,NC,NLI).
 
 	
