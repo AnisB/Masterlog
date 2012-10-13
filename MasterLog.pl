@@ -2,15 +2,6 @@
 % Jeremy gaillard, Benyoub Anis
 % MasterLog, un jeu mastermind en prolog
 
-couleur(1).
-couleur(2).
-couleur(3).
-couleur(4).
-couleur(5).
-couleur(6).
-couleur(7).
-couleur(8).
-
 
 % Methode d'inversion de listes
 inv_pile([],X,X).
@@ -94,31 +85,51 @@ startGame(X,Y):-tour(X,Y,0).
 % Y : nombre de tours
 play(Y):-read(X),write(X),startGame(X,Y).
 
-extract(X, [X|L], L).
-extract(X, [T|R], [T|L] ):-extract(X, R, L).
+% enlève l'élément X de la liste passé en second paramètre
+%extract(X, [X|L], L).
+%extract(X, [], X).
+%extract(X, [T|R], [T|L] ):-extract(X, R, L).
+% appel a subtract car celui-ci renvoie vrai même si l'élément n'appartient pas a la liste de départ
+extract(X,Y,Z):-subtract(Y,[X],Z).
 
-newList(Li,C,[],Lp,[],[],Li,K,K2,C):- inv(K,K2).
-newList(Li,C,[K|Ls],[D|Lp],[f|X],[I|Y],NLi,NLp,NLpf,NC):-extract(I,Li,Li2),newList(Li2,C,Ls,Lp,X,Y,NLi,[D|NLp],NLpf,NC).
-newList(Li,C,[K|Ls],[D|Lp],[f|X],[I|Y],NLi,NLp,NLpf,NC):-newList(Li2,C,Ls,Lp,X,Y,NLi,[D|NLp],NLpf,NC).
+% Met a jour les listes Li (liste initiale comportant les couleurs non encore testées), Lp (contient pour chaque position, la liste des couleurs
+% interdites), C (liste des couleurs contenues dans la combinaison)
+%
+% Toute les infos ont été traitées : on copie C dans NC, Li, dans NLi, et on inverse NLp
+newList(NLi,NC,[],_,[],[],NLi,NLp,NLp2,NC):- inv(NLp,NLp2).
 
+newList(Li,C,[_|Ls],[D|Lp],[f|R],[I|Sp],NLi,NLp,NLpf,NC):-extract(I,Li,Li2),newList(Li2,C,Ls,Lp,R,Sp,NLi,[D|NLp],NLpf,NC).
+%newList(Li,C,[_|Ls],[D|Lp],[f|R],[I|Sp],NLi,NLp,NLpf,NC):-newList(Li,C,Ls,Lp,R,Sp,NLi,[D|NLp],NLpf,NC).
 
-newList(Li,C,[I|Ls],[D|Lp],[v|X],[I|Y],NLi,NLp,NLpf,NC):-extract(I,Li,Li2),newList(Li2,[I|C],Ls,Lp,X,Y,NLi,[D|NLp],NLpf,NC).
-newList(Li,C,[I|Ls],[D|Lp],[v|X],[I|Y],NLi,NLp,NLpf,NC):-newList(Li2,[I|C],Ls,Lp,X,Y,NLi,[D|NLp],NLpf,NC).
+newList(Li,C,[I|Ls],[D|Lp],[v|R],[I|Sp],NLi,NLp,NLpf,NC):-extract(I,Li,Li2),newList(Li2,[I|C],Ls,Lp,R,Sp,NLi,[D|NLp],NLpf,NC).
+%newList(Li,C,[I|Ls],[D|Lp],[v|R],[I|Sp],NLi,NLp,NLpf,NC):-newList(Li,[I|C],Ls,Lp,R,Sp,NLi,[D|NLp],NLpf,NC).
 
-newList(Li,C,[K|Ls],[D|Lp],[p|X],[I|Y],NLi,NLp,NLpf,NC):-extract(I,Li,Li2),newList(Li2,[I|C],Ls,Lp,X,Y,NLi,[[I|D]|NLp],NLpf,NC).
-newList(Li,C,[K|Ls],[D|Lp],[p|X],[I|Y],NLi,NLp,NLpf,NC):-newList(Li2,[I|C],Ls,Lp,X,Y,NLi,[[I|D]|NLp],NLpf,NC).
+newList(Li,C,[_|Ls],[D|Lp],[p|R],[I|Sp],NLi,NLp,NLpf,NC):-extract(I,Li,Li2),newList(Li2,[I|C],Ls,Lp,R,Sp,NLi,[[I|D]|NLp],NLpf,NC).
+%newList(Li,C,[_|Ls],[D|Lp],[p|R],[I|Sp],NLi,NLp,NLpf,NC):-newList(Li,[I|C],Ls,Lp,R,Sp,NLi,[[I|D]|NLp],NLpf,NC).
 
-propose(4,NLI,_,NC,S,Sk,NC,NLI):-inv(S,Sk).
-propose(Size,[],Lp,C,S,Sp,NC,NLI):- propose(Size,C,Lp,[],S,Sp,NC,NLI).
-propose(Size,[D|Li],[O|Lp],C,S,Sp,NC,NLI):-D \= [], Size1 is Size+1,not(member(D,O)),propose(Size1,Li,Lp,[D|C],[D|S],Sp,NC,NLI).
-propose(Size,[D|Li],Lp,C,S,Sp,NC,NLI):-D \= [], propose(Size,Li,Lp,[D|C],S,Sp,NC,NLI).
+%propose(4,NLI,_,NC,S,Sk,NC,NLI):-inv(S,Sk).
+%propose(Size,[],Lp,C,S,Sp,NC,NLI):- propose(Size,C,Lp,C,S,Sp,NC,NLI).
+%propose(Size,[D|Li],[O|Lp],C,S,Sp,NC,NLI):-D \= [], Size1 is Size+1,not(member(D,O)),propose(Size1,Li,Lp,C,[D|S],Sp,NC,NLI).
+%propose(Size,[D|Li],Lp,C,S,Sp,NC,NLI):-D \= [], propose(Size,Li,Lp,C,S,Sp,NC,NLI).
+propose(4,_,_,_,_,S,Sk):-inv(S,Sk).
+propose(Size,[],Lp,Ls,C,S,Sp):- propose2(Size,C,Lp,Ls,C,S,Sp).
+% On dépile un élément de Li, si celui-ci n'est pas interdit à la position actuelle, on le rajoute à la solution proposée
+propose(Size,[D|Li],[O|Lp],[_|Ls],C,S,Sp):-D \= [], Size1 is Size+1,not(member(D,O)),propose(Size1,Li,Lp,Ls,C,[D|S],Sp).
+% Dans le cas contraire, on prend l'élément suivant de Li
+propose(Size,[D|Li],Lp,Ls,C,S,Sp):-D \= [], propose(Size,Li,Lp,Ls,C,S,Sp).
 
-	
+% Si toutes les couleurs ont été trouvées et seules les positions doivent être devinées
+propose2(4,_,_,_,_,S,Sk):-inv(S,Sk).
+% Si Li est vide, on la remplie par la liste des couleurs trouvées
+propose2(Size,[],Lp,Ls,C,S,Sp):-propose2(Size,C,Lp,Ls,C,S,Sp).
+propose2(Size,Li,[_|Lp],[P|Ls],C,S,Sp):-nonvar(P), Size1 is Size+1,extract(P,Li,Li2),propose2(Size1,Li2,Lp,Ls,C,[P|S],Sp).
+propose2(Size,[D|Li],[O|Lp],[P|Ls],C,S,Sp):-var(P),D \= [], Size1 is Size+1,not(member(D,O)),propose2(Size1,Li,Lp,Ls,C,[D|S],Sp).
+propose2(Size,[D|Li],Lp,Ls,C,S,Sp):-var(P),D \= [], propose2(Size,Li,Lp,Ls,C,S,Sp).
 
-solve(S,Li,Sf,Ls,Lp,C,[v,v,v,v]):-write('I\'ve found it !').
-victory([v,v,v,v]):-write(bla).
+solve(_,_,_,_,_,_,[v,v,v,v]):-write('I\'ve found it !').
+solve(S,Li,Sf,Ls,Lp,C,AR):-AR \= [v,v,v,v],propose(0,Li,Lp,Ls,C,[],Sp),write('Maybe this?\n'),write( Sp ),write( '\n' ), testComb(Sp,S,R),write( R ),write('\n'	),read(OP),newList(Li,C,Ls,Lp,R,Sp,NLi,[],Nlpf,NC),solve(S,NLi,Sf,Ls,Nlpf,NC,R).
 
-solve(S,Li,Sf,Ls,Lp,C,AR):-AR \= [v,v,v,v],propose(0,Li,Lp,C,[],Sp,KC,KLI),write('Maybe this?\n'),write( Sp ),write( '\n' ), testComb(Sp,S,R),write( R ),write('\n'	),read(OP),newList(Li,C,Ls,Lp,R,Sp,NLi,[],Nlpf,NC),solve(S,NLi,Sf,Ls,Nlpf,NC,R).
+% S : solution, Li : liste des couleurs possibles, Sf : solution trouvée par l'IA
 machine(S,Li,Sf):-solve(S,Li,Sf,[X,Y,Z,D],[[],[],[],[]],[],[]).
 
 %newList([1,2,3,4,5,6,7,8],C,[X,Y,Z,D],[[],[],[],[]],[p,v,f,f],[1,2,7,6],J,[],Q,P).
