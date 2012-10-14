@@ -126,10 +126,16 @@ propose2(Size,Li,[_|Lp],[P|Ls],C,S,Sp):-nonvar(P), Size1 is Size+1,extract(P,Li,
 propose2(Size,[D|Li],[O|Lp],[P|Ls],C,S,Sp):-var(P),D \= [], Size1 is Size+1,not(member(D,O)),propose2(Size1,Li,Lp,Ls,C,[D|S],Sp).
 propose2(Size,[D|Li],Lp,Ls,C,S,Sp):-var(P),D \= [], propose2(Size,Li,Lp,Ls,C,S,Sp).
 
+
+
+
+% Fonction de résolution 
+% S: Solution , Li liste des élèments possibles, Sf: Solution finale proposée, Ls :  Liste des valeurs trouvées, C: Variables existantes , AR : resultat précédent 
 solve(_,_,_,_,_,_,[v,v,v,v]):-write('I\'ve found it !').
 solve(S,Li,Sf,Ls,Lp,C,AR):-AR \= [v,v,v,v],propose(0,Li,Lp,Ls,C,[],Sp),write('Maybe this?\n'),write( Sp ),write( '\n' ), testComb(Sp,S,R),write( R ),write('\n'	),read(OP),newList(Li,C,Ls,Lp,R,Sp,NLi,[],Nlpf,NC),solve(S,NLi,Sf,Ls,Nlpf,NC,R).
+
+
 
 % S : solution, Li : liste des couleurs possibles, Sf : solution trouvée par l'IA
 machine(S,Li,Sf):-solve(S,Li,Sf,[X,Y,Z,D],[[],[],[],[]],[],[]).
 
-%newList([1,2,3,4,5,6,7,8],C,[X,Y,Z,D],[[],[],[],[]],[p,v,f,f],[1,2,7,6],J,[],Q,P).
