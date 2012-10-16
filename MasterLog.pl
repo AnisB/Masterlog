@@ -9,31 +9,6 @@ inv_pile([X|Y],Z,W) :- inv_pile(Y,[X|Z],W).
 inv(X,Y):- inv_pile(X,[],Y).
 
 
-% Methode de récupération de combinaison stockée dans le fichier X
-getCombination(X,Y,Z):-readFile(X,Y,Z).
-
-
-% Lecture du fichier File
-readFile(File,Y,Z):-
-        open(File, read, In),
-        get_char(In, Char1),
-        process_stream(Char1, In,Y,Z),
-        close(In).
-
-
-% Lecture des caractères
-process_stream(end_of_file, _,Y,Y) :- !.
-      
-process_stream(' ', In,Y,Z) :-
-        get_char(In, Char2),
-        process_stream(Char2, In,Y,Z).      
-process_stream(Char, In,Y,Z) :-
-		Char \=' ',
-        get_char(In, Char2),
-        process_stream(Char2, In,Y,[_|Z]).
-        
-        
-        
 % Fonctions de substitution
 subs_pile(_,_,[],Z,Z).
 subs_pile([],Y,[X|F],S,Z):-subs_pile([],Y,F,[X|S],Z).
@@ -44,37 +19,35 @@ subs(X,Y,Z,S):-subs_pile(X,Y,Z,[],Q),inv(Q,S).
 search(A,Y,p,Ys):-member(A,Y), subs(A,p,Y,Ys).
 search(A,Y,f,Y):-not(member(A,Y)).
 
-replace2([],_,Z,Z).
-replace2([v|X],Y,Z,R):-replace2(X,Y,[v|Z],R).
-replace2([A|X],Y,Z,R):-A\=v,search(A,Y,f,Ys),replace2(X,Ys,[f|Z],R).
-replace2([A|X],Y,Z,R):-A\=v,search(A,Y,p,Ys),replace2(X,Ys,[p|Z],R).
-replace(X,Y,R):-replace2(X,Y,[],S),inv(S,R).
-
-
-
-
-        
-        
-% Correction d'une tentative, X: Combinaison proposée, Y: Combinaison exacte, Z: correction   
-
 % Correction exacte
-testExact2([],[],Z,Z).     
-testExact2([X|K],[X|O],Z,R):-testExact2(K,O,[v|Z],R).     
-testExact2([X|K],[Y|O],Z,R):- X\=Y,testExact2(K,O,[X|Z],R).  
-testExact(X,Y,R):-testExact2(X,Y,[],F),inv(F,R).   
+% X combinaison proposée partiellement corrigée , Y combinaison juste partiellement corrigée , R correction finale
+testPresence2([],_,Z,Z).
+testPresence2([v|X],Y,Z,R):-testPresence2(X,Y,[v|Z],R).
+testPresence2([A|X],Y,Z,R):-A\=v,search(A,Y,D,Ys),testPresence2(X,Ys,[D|Z],R).
+testPresence(X,Y,R):-testPresence2(X,Y,[],S),inv(S,R).
+
+
+        
+        
+% Correction exacte
+% X combinaison proposée, Y combinaison juste, RX correction partielle de X, RY correction partielle de Y
+testExact2([],[],ZX,ZX,ZY,ZY).     
+testExact2([X|K],[X|O],ZX,RX,ZY,RY):-testExact2(K,O,[v|ZX],RX,[v|ZY],RY).     
+testExact2([X|K],[Y|O],ZX,RX,ZY,RY):- X\=Y,testExact2(K,O,[X|ZX],RX,[Y|ZY],RY).  
+testExact(X,Y,RX,RY):-testExact2(X,Y,[],FX,[],FY),inv(FX,RX),inv(FY,RY). 
 
 % Le deuxième paramètre prend la valeur 1 si la combinaison est gagnante (que des v), 0 sinon
 testVictory([], 1).
 testVictory([v|R], V):-testVictory(R, V).
 testVictory([X|_], 0):-X\=v.
 
-% X : combinaison proposée, Y : combinaison juste, S : correction
-testComb(X,Y,S):-testExact(X,Y,R),replace(R,Y,S).
+% Correction d'une tentative, X: Combinaison proposée, Y: Combinaison exacte, S: correction   
+testCombinaison(X,Y,S):-testExact(X,Y,RX,RY),testPresence(RX,RY,S).
 
 
 tour(_,_,1):-write('Victory !\n').
 tour(_,0,0):-write('You just lost the game\n').
-tour(X,Y,0):- Y\=0,write('Try to guess the combination\n'),read(H),testComb(H,X,J),write(J),testVictory(J,V),Z is Y -1,tour(X,Z,V).
+tour(X,Y,0):- Y\=0,write('Try to guess the combination\n'),read(H),testCombinaison(H,X,J),write(J),testVictory(J,V),Z is Y -1,tour(X,Z,V).
 
 
 
@@ -132,7 +105,7 @@ propose2(Size,[D|Li],Lp,Ls,C,S,Sp):-var(P),D \= [], propose2(Size,Li,Lp,Ls,C,S,S
 % Fonction de résolution 
 % S: Solution , Li liste des élèments possibles, Sf: Solution finale proposée, Ls :  Liste des valeurs trouvées, C: Variables existantes , AR : resultat précédent 
 solve(_,_,_,_,_,_,[v,v,v,v]):-write('I\'ve found it !').
-solve(S,Li,Sf,Ls,Lp,C,AR):-AR \= [v,v,v,v],propose(0,Li,Lp,Ls,C,[],Sp),write('Maybe this?\n'),write( Sp ),write( '\n' ), testComb(Sp,S,R),write( R ),write('\n'	),read(OP),newList(Li,C,Ls,Lp,R,Sp,NLi,[],Nlpf,NC),solve(S,NLi,Sf,Ls,Nlpf,NC,R).
+solve(S,Li,Sf,Ls,Lp,C,AR):-AR \= [v,v,v,v],propose(0,Li,Lp,Ls,C,[],Sp),write('Maybe this?\n'),write( Sp ),write( '\n' ), testCombinaison(Sp,S,R),write( R ),write('\n'	),read(OP),newList(Li,C,Ls,Lp,R,Sp,NLi,[],Nlpf,NC),solve(S,NLi,Sf,Ls,Nlpf,NC,R).
 
 
 
