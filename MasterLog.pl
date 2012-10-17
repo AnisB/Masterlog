@@ -36,26 +36,27 @@ testExact2([X|K],[X|O],ZX,RX,ZY,RY):-testExact2(K,O,[v|ZX],RX,[v|ZY],RY).
 testExact2([X|K],[Y|O],ZX,RX,ZY,RY):- X\=Y,testExact2(K,O,[X|ZX],RX,[Y|ZY],RY).  
 testExact(X,Y,RX,RY):-testExact2(X,Y,[],FX,[],FY),inv(FX,RX),inv(FY,RY). 
 
+
+% Correction d'une tentative, X: Combinaison proposée, Y: Combinaison exacte, S: correction   
+testCombinaison(X,Y,S):-testExact(X,Y,RX,RY),testPresence(RX,RY,S).
+
 % Le deuxième paramètre prend la valeur 1 si la combinaison est gagnante (que des v), 0 sinon
 testVictory([], 1).
 testVictory([v|R], V):-testVictory(R, V).
 testVictory([X|_], 0):-X\=v.
 
-% Correction d'une tentative, X: Combinaison proposée, Y: Combinaison exacte, S: correction   
-testCombinaison(X,Y,S):-testExact(X,Y,RX,RY),testPresence(RX,RY,S).
 
-
+% X la combinaison gagnante
+% Y la le nombre de tour restants
 tour(_,_,1):-write('Victory !\n').
 tour(_,0,0):-write('You just lost the game\n').
-tour(X,Y,0):- Y\=0,write('Try to guess the combination\n'),read(H),testCombinaison(H,X,J),write(J),testVictory(J,V),Z is Y -1,tour(X,Z,V).
-
+tour(X,Y,0):- Y\=0,write('Try to guess the combination\n'),read(H),testCombinaison(H,X,J),write(J),testVictory(J,V),
+																							Z is Y -1,tour(X,Z,V).
 
 startGame(X,Y):-tour(X,Y,0).
 
-%launch(X):-write(''),getCombination('logs',InitCombination,[]),inv(InitCombination,Patate),write(Patate),startGame(Patate,9).
 
-% Y : nombre de tours
-play(Y):-read(X),write(X),startGame(X,Y).
+%IA
 
 % enlève l'élément X de la liste passé en second paramètre
 %extract(X, [X|L], L).
@@ -69,47 +70,42 @@ extract(X,Y,Z):-subtract(Y,[X],Z).
 %
 % Toute les infos ont été traitées : on copie C dans NC, Li, dans NLi, et on inverse NLp
 newList(NLi,NC,[],_,[],[],NLi,NLp,NLp2,NC):- inv(NLp,NLp2).
+newList(Li,C,[I|Ls],[D|Lp],[v|R],[I|Sp],NLi,NLp,NLpf,NC):-proper_length(C, 4),extract(I,Li,Li2),newList(Li2,C,Ls,Lp,R,Sp,NLi,[D|NLp],NLpf,NC).
+newList(Li,C,[_|Ls],[D|Lp],[p|R],[I|Sp],NLi,NLp,NLpf,NC):-proper_length(C, 4),extract(I,Li,Li2),newList(Li2,C,Ls,Lp,R,Sp,NLi,[[I|D]|NLp],NLpf,NC).
 
-newList(Li,C,[_|Ls],[D|Lp],[f|R],[I|Sp],NLi,NLp,NLpf,NC):-extract(I,Li,Li2),newList(Li2,C,Ls,Lp,R,Sp,NLi,[D|NLp],NLpf,NC).
-%newList(Li,C,[_|Ls],[D|Lp],[f|R],[I|Sp],NLi,NLp,NLpf,NC):-newList(Li,C,Ls,Lp,R,Sp,NLi,[D|NLp],NLpf,NC).
+
+newList(Li,C,[_|Ls],[D|Lp],[f|R],[I|Sp],NLi,NLp,NLpf,NC):-extract(I,Li,Li2),newList(Li2,C,Ls,Lp,R,Sp,NLi,[[I|D]|NLp],NLpf,NC).
 
 newList(Li,C,[I|Ls],[D|Lp],[v|R],[I|Sp],NLi,NLp,NLpf,NC):-extract(I,Li,Li2),newList(Li2,[I|C],Ls,Lp,R,Sp,NLi,[D|NLp],NLpf,NC).
-%newList(Li,C,[I|Ls],[D|Lp],[v|R],[I|Sp],NLi,NLp,NLpf,NC):-newList(Li,[I|C],Ls,Lp,R,Sp,NLi,[D|NLp],NLpf,NC).
 
 newList(Li,C,[_|Ls],[D|Lp],[p|R],[I|Sp],NLi,NLp,NLpf,NC):-extract(I,Li,Li2),newList(Li2,[I|C],Ls,Lp,R,Sp,NLi,[[I|D]|NLp],NLpf,NC).
-%newList(Li,C,[_|Ls],[D|Lp],[p|R],[I|Sp],NLi,NLp,NLpf,NC):-newList(Li,[I|C],Ls,Lp,R,Sp,NLi,[[I|D]|NLp],NLpf,NC).
 
-%propose(4,NLI,_,NC,S,Sk,NC,NLI):-inv(S,Sk).
-%propose(Size,[],Lp,C,S,Sp,NC,NLI):- propose(Size,C,Lp,C,S,Sp,NC,NLI).
-%propose(Size,[D|Li],[O|Lp],C,S,Sp,NC,NLI):-D \= [], Size1 is Size+1,not(member(D,O)),propose(Size1,Li,Lp,C,[D|S],Sp,NC,NLI).
-%propose(Size,[D|Li],Lp,C,S,Sp,NC,NLI):-D \= [], propose(Size,Li,Lp,C,S,Sp,NC,NLI).
-propose(0,_,_,_,_,S,Sk):-inv(S,Sk).
-propose(Size,[],Lp,Ls,C,S,Sp):- propose2(Size,C,Lp,Ls,C,S,Sp).
+
+
+proposeCol(0,_,_,_,_,S,Sk):-inv(S,Sk).
+proposeCol(Size,[],Lp,Ls,C,S,Sp):- proposePos(Size,C,Lp,Ls,C,S,Sp).
 % On dépile un élément de Li, si celui-ci n'est pas interdit à la position actuelle, on le rajoute à la solution proposée
-propose(Size,[D|Li],[O|Lp],[_|Ls],C,S,Sp):-D \= [], Size1 is Size-1,not(member(D,O)),propose(Size1,Li,Lp,Ls,C,[D|S],Sp).
+proposeCol(Size,[D|Li],[O|Lp],[_|Ls],C,S,Sp):-D \= [], Size1 is Size-1,not(member(D,O)),proposeCol(Size1,Li,Lp,Ls,C,[D|S],Sp).
 % Dans le cas contraire, on prend l'élément suivant de Li
-propose(Size,[D|Li],Lp,Ls,C,S,Sp):-D \= [], propose(Size,Li,Lp,Ls,C,S,Sp).
+proposeCol(Size,[D|Li],Lp,Ls,C,S,Sp):-D \= [], proposeCol(Size,Li,Lp,Ls,C,S,Sp).
 
 % Si toutes les couleurs ont été trouvées et seules les positions doivent être devinées
-propose2(0,_,_,_,_,S,Sk):-inv(S,Sk).
+proposePos(0,_,_,_,_,S,Sk):-inv(S,Sk).
 % Si Li est vide, on la remplie par la liste des couleurs trouvées
-propose2(Size,[],Lp,Ls,C,S,Sp):-propose2(Size,C,Lp,Ls,C,S,Sp).
-propose2(Size,Li,[_|Lp],[P|Ls],C,S,Sp):-nonvar(P), Size1 is Size-1,extract(P,Li,Li2),propose2(Size1,Li2,Lp,Ls,C,[P|S],Sp).
-propose2(Size,[D|Li],[O|Lp],[P|Ls],C,S,Sp):-var(P),D \= [], Size1 is Size-1,not(member(D,O)),propose2(Size1,Li,Lp,Ls,C,[D|S],Sp).
-propose2(Size,[D|Li],Lp,Ls,C,S,Sp):-var(P),D \= [], propose2(Size,Li,Lp,Ls,C,S,Sp).
+proposePos(Size,[],Lp,Ls,C,S,Sp):-proposePos(Size,C,Lp,Ls,C,S,Sp).
+proposePos(Size,Li,[_|Lp],[P|Ls],C,S,Sp):-nonvar(P), Size1 is Size-1,extract(P,Li,Li2),proposePos(Size1,Li2,Lp,Ls,C,[P|S],Sp).
+proposePos(Size,[D|Li],[O|Lp],[P|Ls],C,S,Sp):-var(P),D \= [], Size1 is Size-1,not(member(D,O)),proposePos(Size1,Li,Lp,Ls,C,[D|S],Sp).
+proposePos(Size,[D|Li],Lp,Ls,C,S,Sp):-var(P),D \= [], proposePos(Size,Li,Lp,Ls,C,S,Sp).
 
 
 
 
-% Fonction de résolution 
+% Fonction de résolution IA
 % S: Solution , Li liste des élèments possibles, Sf: Solution finale proposée, Ls :  Liste des valeurs trouvées, C: Variables existantes , AR : resultat précédent 
 solve(_,_,_,_,_,_,V,V):-write('I\'ve found it !').
-solve(S,Li,Sf,Ls,Lp,C,AR,V):-AR \= V,proper_length(S, Size),propose(Size,Li,Lp,Ls,C,[],Sp),write('Maybe this?\n'),write( Sp ),write( '\n' ), testCombinaison(Sp,S,R),write( R ),write('\n'	),read(OP),newList(Li,C,Ls,Lp,R,Sp,NLi,[],Nlpf,NC),solve(S,NLi,Sf,Ls,Nlpf,NC,R,V).
+solve(S,Li,Sf,Ls,Lp,C,AR,V):-AR \= V,proper_length(S, Size),proposeCol(Size,Li,Lp,Ls,C,[],Sp),write('Maybe this?\n'),write( Sp ),write( '\n' ), testCombinaison(Sp,S,R),write( R ),write('\n'	),newList(Li,C,Ls,Lp,R,Sp,NLi,[],Nlpf,NC),solve(S,NLi,Sf,Ls,Nlpf,NC,R,V).
 
 
-
-% S : solution, Li : liste des couleurs possibles, Sf : solution trouvée par l'IA
-%machine(S,Li,Sf):-solve(S,Li,Sf,[X,Y,Z,D],[[],[],[],[]],[],[],[v,v,v,v]).
 
 buildVar(0,S,S).
 buildVar(Size,S,R):-NewSize is Size - 1, buildVar(NewSize,[X|S],R).
@@ -117,4 +113,6 @@ buildEmpty(0,S,S).
 buildEmpty(Size,S,R):-NewSize is Size - 1, buildEmpty(NewSize,[[]|S],R).
 buildV(0,S,S).
 buildV(Size,S,R):-NewSize is Size - 1, buildV(NewSize,[v|S],R).
-machine(S,Li,Sf):-proper_length(S, Size), buildVar(Size, [], Var), buildEmpty(Size, [], E), buildV(Size, [], V), solve(S,Li,Sf,Var,E,[],[],V).
+
+makeIAPlay(ATrouver,ElementsPos,SolutionFin):-proper_length(ATrouver, Size), buildVar(Size, [], Var), buildEmpty(Size, [], E), buildV(Size, [], V), solve(ATrouver,ElementsPos,SolutionFin,Var,E,[],[],V).
+
