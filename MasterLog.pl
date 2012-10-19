@@ -104,9 +104,9 @@ proposePos(Size,[D|Li],Lp,Ls,C,S,Sp):-var(P),D \= [], proposePos(Size,Li,Lp,Ls,C
 
 
 % Fonction de résolution IA
-% S: Solution , Li liste des élèments possibles, Sf: Solution finale proposée, Ls :  Liste des valeurs trouvées, C: Variables existantes , AR : resultat précédent 
-solve(_,_,_,_,_,_,V,V):-write('I\'ve found it !').
-solve(S,Li,Sf,Ls,Lp,C,AR,V):-AR \= V,proper_length(S, Size),proposeCol(Size,Li,Lp,Ls,C,[],Sp),write('Maybe this?\n'),write( Sp ),write( '\n' ), testCombinaison(Sp,S,R),write( R ),write('\n'),newList(Li,C,Ls,Lp,R,Sp,NLi,[],Nlpf,NC),solve(S,NLi,Sf,Ls,Nlpf,NC,R,V).
+% S: Solution , Li liste des élèments possibles non testés, Sf: Solution finale proposée, Ls :  Liste des valeurs trouvées, Lp: liste des valeurs interdites par position, C: Variables existantes , AR : resultat précédent , Liste de V
+iaInterface(_,_,_,_,_,_,V,V):-write('I\'ve found it !').
+iaInterface(S,Li,Sf,Ls,Lp,C,AR,V):-AR \= V,proper_length(S, Size),proposeCol(Size,Li,Lp,Ls,C,[],Sp),write('Maybe this?\n'),write( Sp ),write( '\n' ), testCombinaison(Sp,S,R),write( R ),write('\n'),newList(Li,C,Ls,Lp,R,Sp,NLi,[],Nlpf,NC),iaInterface(S,NLi,Sf,Ls,Nlpf,NC,R,V).
 
 
 
@@ -127,5 +127,5 @@ buildV(Size,S,R):-NewSize is Size - 1, buildV(NewSize,[v|S],R).
 
 
 % Regle qui permet de faire joeur l'IA
-makeIAPlay(ATrouver,ElementsPos,SolutionFin):-proper_length(ATrouver, Size), buildVar(Size, [], Var), buildEmpty(Size, [], E), buildV(Size, [], V), solve(ATrouver,ElementsPos,SolutionFin,Var,E,[],[],V).
+makeIAPlay(ATrouver,ElementsPos,SolutionFin):-proper_length(ATrouver, Size), buildVar(Size, [], Var), buildEmpty(Size, [], E), buildV(Size, [], V), iaInterface(ATrouver,ElementsPos,SolutionFin,Var,E,[],[],V).
 
